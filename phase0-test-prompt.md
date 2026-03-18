@@ -36,31 +36,10 @@ Test the following:
 
 - **Health endpoint:** `GET /api/health` returns HTTP 200 and a JSON body `{ status: "ok" }`.
 - **Database connection:** Drizzle can connect to an in-memory SQLite (`:memory:`) and execute a trivial query without throwing.
-- **Schema migration:** `drizzle-kit` migrations apply cleanly on a fresh `:memory:` database. Tables created: `accounts`, `paths`, `snapshots`, `blobs`, `shares`, `invites`, `audit_logs`.
+- **Schema migration:** Migration idempotency must be tested by running migrations twice against the same in-memory SQLite connection.Do not create a second `:memory:` database for the second run.
 - **Migration idempotency:** Running migrations twice on the same database does not throw.
 
-### 2. `packages/server/src/__tests__/blob-store.test.ts`
-
-The blob store module exposes an interface like:
-
-```ts
-interface BlobStore {
-  put(content: Buffer): Promise<string>;   // returns SHA-256 hex hash
-  get(hash: string): Promise<Buffer>;      // retrieves content by hash
-  exists(hash: string): Promise<boolean>;  // check existence
-}
-```
-
-Test the following:
-
-- **Store and retrieve:** `put(content)` → `get(hash)` returns identical content.
-- **Dedup / deterministic hash:** Calling `put` twice with the same content returns the same hash; the file on disk is not duplicated.
-- **Missing blob:** `get('nonexistent_hash')` throws or returns null (match whichever convention the implementation uses).
-- **exists() correctness:** Returns `false` before `put`, `true` after.
-
-Use a temporary directory (`fs.mkdtemp`) for the blob store root in tests; clean up in `afterAll`.
-
-### 3. `packages/cli/src/__tests__/smoke.test.ts`
+### 2. `packages/cli/src/__tests__/smoke.test.ts`
 
 Test the following (use `execSync` or `execa`):
 
@@ -68,7 +47,7 @@ Test the following (use `execSync` or `execa`):
 - **`--help`** prints usage text containing `bluedux` and exits with code 0.
 - **Unknown command** (`bluedux nonsense`) exits with a non-zero exit code.
 
-### 4. CI Validation (no test file needed — just verify)
+### 3. CI Validation (no test file needed — just verify)
 
 Confirm that the following commands succeed as a CI smoke check:
 
