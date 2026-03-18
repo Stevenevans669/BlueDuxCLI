@@ -1,8 +1,8 @@
-# Bluedox CLI Spec v0
+# Bluedux CLI Spec v0
 
 ## Conventions
 
-- Binary name: `bluedox`
+- Binary name: `bluedux`
 - All commands support `--json` for machine-parseable output
 - All commands exit `0` on success, non-zero on failure
 - Exit codes:
@@ -12,16 +12,16 @@
   - `3` -- validation error
 - When `--json` is set, all output (including errors) is JSON to stdout
 - Without `--json`, human-readable text goes to stdout, errors to stderr
-- Password input priority: `--password <value>` flag > `BLUEDOX_SHARE_PASSWORD` env var > interactive TTY prompt > stdin pipe. Fails with exit `3` if no source available.
+- Password input priority: `--password <value>` flag > `BLUEDUX_SHARE_PASSWORD` env var > interactive TTY prompt > stdin pipe. Fails with exit `3` if no source available.
 
 ---
 
-## `bluedox login`
+## `bluedux login`
 
 **Synopsis:**
 
 ```
-bluedox login [--force] [--json]
+bluedux login [--force] [--json]
 ```
 
 **Description:** Authenticates the user via browser-based OAuth flow.
@@ -56,12 +56,12 @@ Logged in as steve@example.com
 
 ---
 
-## `bluedox logout`
+## `bluedux logout`
 
 **Synopsis:**
 
 ```
-bluedox logout [--json]
+bluedux logout [--json]
 ```
 
 **Description:** Removes stored credentials and ends the current session.
@@ -92,12 +92,12 @@ Logged out.
 
 ---
 
-## `bluedox whoami`
+## `bluedux whoami`
 
 **Synopsis:**
 
 ```
-bluedox whoami [--json]
+bluedux whoami [--json]
 ```
 
 **Description:** Displays the currently authenticated user.
@@ -124,17 +124,17 @@ steve@example.com
 
 | Condition | Exit | Message |
 |---|---|---|
-| Not logged in | 2 | `Not logged in. Run bluedox login.` |
-| Expired/invalid token | 2 | `Session expired. Run bluedox login.` |
+| Not logged in | 2 | `Not logged in. Run bluedux login.` |
+| Expired/invalid token | 2 | `Session expired. Run bluedux login.` |
 
 ---
 
-## `bluedox upload`
+## `bluedux upload`
 
 **Synopsis:**
 
 ```
-bluedox upload <file> [--json]
+bluedux upload <file> [--json]
 ```
 
 **Description:** Uploads a single file to the user's Personal Library, creating a new Snapshot.
@@ -185,21 +185,21 @@ Warning: missing dependencies:
 
 | Condition | Exit | Message |
 |---|---|---|
-| Not logged in | 2 | `Not logged in. Run bluedox login.` |
+| Not logged in | 2 | `Not logged in. Run bluedux login.` |
 | File not found | 3 | `File not found: <path>` |
 | File not readable | 3 | `Cannot read file: <path>` |
-| No file argument | 3 | `Usage: bluedox upload <file>` |
+| No file argument | 3 | `Usage: bluedux upload <file>` |
 | Server unreachable | 1 | `Could not reach server. Check your connection.` |
 | Upload failed | 1 | `Upload failed: <reason>` |
 
 ---
 
-## `bluedox share`
+## `bluedux share`
 
 **Synopsis:**
 
 ```
-bluedox share <path> --to <user|email> [--password [<password>]] [--json]
+bluedux share <path> --to <user|email> [--password [<password>]] [--json]
 ```
 
 **Description:** Creates a viewer-only Share for an existing file in the user's Personal Library.
@@ -223,7 +223,7 @@ bluedox share <path> --to <user|email> [--password [<password>]] [--json]
 When `--password` is present, the password value is resolved in this order:
 
 1. **Inline value:** `--password mysecret` -- uses `mysecret`
-2. **Environment variable:** `BLUEDOX_SHARE_PASSWORD` -- used if flag is present with no value
+2. **Environment variable:** `BLUEDUX_SHARE_PASSWORD` -- used if flag is present with no value
 3. **TTY prompt:** if running in an interactive terminal, prompts securely (input hidden)
 4. **Stdin pipe:** reads from stdin if piped
 5. **Failure:** exits with code `3` if none of the above yields a value
@@ -234,7 +234,7 @@ Share to existing user:
 
 ```
 Shared: /notes.md -> steve@example.com
-Link: https://app.bluedox.io/s/a8f3k2x9
+Link: https://app.bluedux.io/s/a8f3k2x9
 ```
 
 Share with invite:
@@ -242,7 +242,7 @@ Share with invite:
 ```
 Invited: newuser@example.com
 Shared: /notes.md -> newuser@example.com (pending invite)
-Link: https://app.bluedox.io/s/a8f3k2x9
+Link: https://app.bluedux.io/s/a8f3k2x9
 ```
 
 **Output (`--json`):**
@@ -253,7 +253,7 @@ Link: https://app.bluedox.io/s/a8f3k2x9
   "path": "/notes.md",
   "to": "steve@example.com",
   "type": "share",
-  "link": "https://app.bluedox.io/s/a8f3k2x9",
+  "link": "https://app.bluedux.io/s/a8f3k2x9",
   "password_set": true
 }
 ```
@@ -266,7 +266,7 @@ With invite:
   "path": "/notes.md",
   "to": "newuser@example.com",
   "type": "invite",
-  "link": "https://app.bluedox.io/s/a8f3k2x9",
+  "link": "https://app.bluedux.io/s/a8f3k2x9",
   "password_set": false
 }
 ```
@@ -275,11 +275,11 @@ With invite:
 
 | Condition | Exit | Message |
 |---|---|---|
-| Not logged in | 2 | `Not logged in. Run bluedox login.` |
+| Not logged in | 2 | `Not logged in. Run bluedux login.` |
 | Path not found remotely | 3 | `Path not found: <path>. Upload it first.` |
-| Missing `--to` flag | 3 | `Usage: bluedox share <path> --to <user\|email>` |
+| Missing `--to` flag | 3 | `Usage: bluedux share <path> --to <user\|email>` |
 | Invalid target (not username or email) | 3 | `Invalid target: <value>. Provide a username or email.` |
-| Password required but unavailable | 3 | `No password provided. Pass a value, set BLUEDOX_SHARE_PASSWORD, or use an interactive terminal.` |
+| Password required but unavailable | 3 | `No password provided. Pass a value, set BLUEDUX_SHARE_PASSWORD, or use an interactive terminal.` |
 | Server unreachable | 1 | `Could not reach server. Check your connection.` |
 | Share creation failed | 1 | `Share failed: <reason>` |
 
@@ -289,11 +289,11 @@ With invite:
 
 ### Authentication
 
-All commands except `login` require valid credentials. If credentials are missing or expired, the command exits with code `2` and a message directing the user to run `bluedox login`.
+All commands except `login` require valid credentials. If credentials are missing or expired, the command exits with code `2` and a message directing the user to run `bluedux login`.
 
 ### Config Directory
 
-`~/.bluedox/` stores:
+`~/.bluedux/` stores:
 
 - `auth.json` -- fallback credential storage (when keychain is unavailable)
 - Keyed by app host to support multiple environments
@@ -313,14 +313,14 @@ When `--json` is passed:
 All commands support `--help` which prints usage information and exits with code `0`.
 
 ```
-bluedox --help
-bluedox <command> --help
+bluedux --help
+bluedux <command> --help
 ```
 
 ### `--version`
 
 ```
-bluedox --version
+bluedux --version
 ```
 
 Prints the CLI version and exits with code `0`.

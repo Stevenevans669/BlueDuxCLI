@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: Bluedox API
+  title: Bluedux API
   version: 0.1.0
   description: |
-    Bluedox is a Markdown-aware private file cloud with snapshots, sharing,
+    Bluedux is a Markdown-aware private file cloud with snapshots, sharing,
     and agent-native APIs. This specification covers the JSON API surface
     used by both the CLI and programmatic agents.
 
@@ -11,7 +11,7 @@ info:
     a valid Bearer token obtained via the login flow.
 
 servers:
-  - url: https://api.bluedox.io/v0
+  - url: https://api.bluedux.io/v0
     description: Production
   - url: http://localhost:3000/v0
     description: Local development
@@ -657,7 +657,7 @@ paths:
                     type: string
                     format: uri
                     description: Canonical share link.
-                    example: https://app.bluedox.io/s/a8f3k2x9
+                    example: https://app.bluedux.io/s/a8f3k2x9
                   password_set:
                     type: boolean
               examples:
@@ -668,7 +668,7 @@ paths:
                     path: /notes.md
                     to: steve@example.com
                     type: share
-                    link: https://app.bluedox.io/s/a8f3k2x9
+                    link: https://app.bluedux.io/s/a8f3k2x9
                     password_set: true
                 invite:
                   summary: Invite to new user
@@ -677,7 +677,7 @@ paths:
                     path: /notes.md
                     to: newuser@example.com
                     type: invite
-                    link: https://app.bluedox.io/s/a8f3k2x9
+                    link: https://app.bluedux.io/s/a8f3k2x9
                     password_set: false
         "401":
           $ref: "#/components/responses/AuthError"
@@ -1031,7 +1031,7 @@ components:
         link:
           type: string
           format: uri
-          example: https://app.bluedox.io/s/a8f3k2x9
+          example: https://app.bluedux.io/s/a8f3k2x9
         password_set:
           type: boolean
         created_at:
@@ -1113,12 +1113,12 @@ components:
               value:
                 status: error
                 code: 2
-                message: "Not logged in. Run bluedox login."
+                message: "Not logged in. Run bluedux login."
             expired:
               value:
                 status: error
                 code: 2
-                message: "Session expired. Run bluedox login."
+                message: "Session expired. Run bluedux login."
 
     NotFound:
       description: Resource not found

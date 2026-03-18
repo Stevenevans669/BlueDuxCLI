@@ -1,8 +1,8 @@
-# Bluedox Lite PRD
+# Bluedux Lite PRD
 
 ## Product
 
-Bluedox is a private, Markdown-aware file cloud for individuals and agents.
+Bluedux is a private, Markdown-aware file cloud for individuals and agents.
 
 It has two surfaces:
 
@@ -10,7 +10,7 @@ It has two surfaces:
 - **Agent surface:** JSON API / Skill
 
 Each Account owns one **Personal Library**. All uploads go there.  
-Bluedox v0 does **not** have team workspaces.
+Bluedux v0 does **not** have team workspaces.
 
 ---
 
@@ -79,7 +79,7 @@ Because the owner must be able to view the password later, share passwords are s
 
 ## CLI
 
-### `Bluedox login`
+### `Bluedux login`
 
 Authenticates the user in the browser.
 
@@ -93,9 +93,9 @@ Behavior:
 Storage:
 
 - use OS keychain when available
-- otherwise fall back to `.Bluedox/auth.json`
+- otherwise fall back to `.bluedux/auth.json`
 
-### `Bluedox upload <file>`
+### `Bluedux upload <file>`
 
 Uploads a single file.
 
@@ -119,7 +119,7 @@ Upload behavior:
 - upload only missing blobs
 - commit a new Snapshot
 
-### `Bluedox share <path> --to <user|email> [--password <password>]`
+### `Bluedux share <path> --to <user|email> [--password <password>]`
 
 Creates a Share for an existing file
 
@@ -244,7 +244,7 @@ Because Shares point to a live Path, recipients see the restored state after res
 
 ## Agent Surface
 
-Bluedox exposes the same core system to agents through a stable JSON API / Skill.
+Bluedux exposes the same core system to agents through a stable JSON API / Skill.
 
 Core operations:
 
@@ -312,10 +312,10 @@ Minimum auditable actions:
 
 ## MVP Definition
 
-Bluedox v0 is done when a user can:
+Bluedux v0 is done when a user can:
 
 
-1. run `Bluedox login`
+1. run `Bluedux login`
 2. complete browser login
 3. upload a Markdown file with all required local dependencies
 4. view content in **My Library**
@@ -332,4 +332,4 @@ Bluedox v0 is done when a user can:
 
 ## Product Positioning
 
-**Bluedox is a Markdown-aware private file cloud with snapshots, sharing, and agent-native APIs.**
+**Bluedux is a Markdown-aware private file cloud with snapshots, sharing, and agent-native APIs.**
