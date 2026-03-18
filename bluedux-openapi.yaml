@@ -140,6 +140,50 @@ paths:
         "500":
           $ref: "#/components/responses/ServerError"
 
+  /auth/refresh:
+    post:
+      operationId: refreshAccessToken
+      tags: [auth]
+      summary: Refresh an access token
+      description: |
+        Exchanges a valid refresh token for a new access token and
+        refresh token pair. Does not require Bearer authentication.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token from `pollLogin` or a prior refresh.
+      responses:
+        "200":
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, access_token, refresh_token]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  access_token:
+                    type: string
+                    description: New Bearer token for API access.
+                  refresh_token:
+                    type: string
+                    description: New refresh token (previous one is invalidated).
+        "401":
+          $ref: "#/components/responses/AuthError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
   /auth/logout:
     post:
       operationId: logout
@@ -215,6 +259,35 @@ paths:
                       $ref: "#/components/schemas/FileEntry"
         "401":
           $ref: "#/components/responses/AuthError"
+
+  /library/files/{path}:
+    get:
+      operationId: getFileDetail
+      tags: [library]
+      summary: Get file detail
+      description: Returns metadata and access URLs for a single file in the Personal Library.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/FilePath"
+      responses:
+        "200":
+          description: File detail
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, file]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  file:
+                    $ref: "#/components/schemas/FileDetail"
+        "401":
+          $ref: "#/components/responses/AuthError"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /library/files/resolve-dependencies:
     post:
@@ -998,6 +1071,41 @@ components:
         latest_snapshot:
           type: string
           description: Identifier of the most recent snapshot.
+
+    FileDetail:
+      type: object
+      required: [path, size, content_type, created_at, updated_at, latest_snapshot, content_url]
+      properties:
+        path:
+          type: string
+          example: /notes.md
+        size:
+          type: integer
+          description: Size in bytes of the latest snapshot.
+        content_type:
+          type: string
+          description: MIME type of the file.
+          example: text/markdown
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        latest_snapshot:
+          type: string
+          description: Identifier of the most recent snapshot.
+        content_url:
+          type: string
+          format: uri
+          description: Authenticated URL to read or download the file content.
+        preview_supported:
+          type: boolean
+          description: Whether a rendered preview is available.
+        preview_url:
+          type: string
+          format: uri
+          description: URL for the rendered preview, if supported.
 
     Snapshot:
       type: object
