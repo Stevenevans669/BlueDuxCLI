@@ -56,6 +56,42 @@ Logged in as steve@example.com
 
 ---
 
+## `bluedox logout`
+
+**Synopsis:**
+
+```
+bluedox logout [--json]
+```
+
+**Description:** Removes stored credentials and ends the current session.
+
+**Flags:**
+
+| Flag | Description |
+|---|---|
+| `--json` | Output result as JSON |
+
+**Output (plain):**
+
+```
+Logged out.
+```
+
+**Output (`--json`):**
+
+```json
+{ "status": "ok" }
+```
+
+**Errors:**
+
+| Condition | Exit | Message |
+|---|---|---|
+| Not logged in | 0 | `Not logged in.` |
+
+---
+
 ## `bluedox whoami`
 
 **Synopsis:**
