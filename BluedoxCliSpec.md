@@ -33,15 +33,6 @@ bluedox login [--force] [--json]
 | `--force` | Re-authenticate even if already logged in |
 | `--json` | Output result as JSON |
 
-**Behavior:**
-
-1. Generate a one-time session token
-2. Start a temporary local HTTP server on a random available port
-3. Open `https://<app-host>/auth/cli?session=<token>` in the default browser
-4. Wait for the browser callback with auth credentials (timeout: 120s)
-5. Store tokens using OS keychain; fall back to `~/.bluedox/auth.json` if keychain unavailable
-6. Shut down the local server
-
 **Output (plain):**
 
 ```
@@ -80,12 +71,6 @@ bluedox whoami [--json]
 | Flag | Description |
 |---|---|
 | `--json` | Output result as JSON |
-
-**Behavior:**
-
-1. Read stored credentials from keychain or `~/.bluedox/auth.json`
-2. If valid, display user info
-3. If no credentials or expired, report not logged in
 
 **Output (plain):**
 
@@ -129,20 +114,6 @@ bluedox upload <file> [--json]
 | Flag | Description |
 |---|---|
 | `--json` | Output result as JSON |
-
-**Behavior:**
-
-1. Resolve `<file>` to an absolute path
-2. Verify the file exists and is readable
-3. If the file is `.md`, parse for relative image references:
-   - Extract all standard Markdown image links (`![alt](relative/path)`)
-   - Ignore external URLs (http/https)
-   - Each relative image target is treated as a dependency
-4. Hash the file (and any dependencies) locally using SHA-256
-5. Send the hash list to the server; receive back which blobs are missing
-6. Upload only missing blobs
-7. Commit a new Snapshot for the file's Path in the Personal Library
-8. If any referenced images are missing from disk, the upload still succeeds but a warning is returned listing the missing images
 
 **Output (plain):**
 
@@ -220,17 +191,6 @@ When `--password` is present, the password value is resolved in this order:
 3. **TTY prompt:** if running in an interactive terminal, prompts securely (input hidden)
 4. **Stdin pipe:** reads from stdin if piped
 5. **Failure:** exits with code `3` if none of the above yields a value
-
-**Behavior:**
-
-1. Resolve `<path>` to a Path in the Personal Library
-2. Verify the Path exists remotely
-3. Resolve the `--to` target:
-   - If target matches an existing username or email, create the Share immediately
-   - If target is an email with no matching account, create an Invite
-   - If target is neither a username nor an email, exit with error
-4. If `--password` is provided, attach the password to the Share (encrypted at rest)
-5. Return the canonical share link
 
 **Output (plain):**
 
