@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "BluedoxCliPRD.md",
+                "file": "BluedoxCliSpec.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "BluedoxCliPRD"
+              "title": "BluedoxCliSpec"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "BluedoxCliPRD.md",
+                "file": "BluedoxCliSpec.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for BluedoxCliPRD"
+              "title": "Backlinks for BluedoxCliSpec"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "BluedoxCliPRD.md",
+                "file": "BluedoxCliSpec.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from BluedoxCliPRD"
+              "title": "Outgoing links from BluedoxCliSpec"
             }
           },
           {
@@ -156,21 +156,21 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "BluedoxCliPRD.md",
+                "file": "BluedoxCliSpec.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of BluedoxCliPRD"
+              "title": "Outline of BluedoxCliSpec"
             }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -185,8 +185,9 @@
   },
   "active": "62a45ace9362516f",
   "lastOpenFiles": [
+    "BluedoxCliPRD.md",
+    "BluedoxCliSpec.md",
     "bluedox-openapi.yaml",
-    "UX.pen",
-    "BluedoxCliSpec.md"
+    "UX.pen"
   ]
 }
