@@ -4,15 +4,19 @@
   "private": true,
   "type": "module",
   "bin": {
-    "bluedux": "bin/bluedux.js"
+    "bluedux": "./bin/bluedux.js"
   },
   "scripts": {
-    "test": "vitest run"
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "eslint src/"
   },
   "dependencies": {
     "commander": "^13.1.0"
   },
   "devDependencies": {
+    "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "vitest": "^3.1.1"
   }
