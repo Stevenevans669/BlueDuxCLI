@@ -1,716 +1,336 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Bluedox API
+  version: 0.1.0
   description: |
-    Bluedox is a Markdown-aware private file cloud with snapshots, sharing, and agent-native APIs.
-    This API serves both the Human Surface (CLI / Web App) and the Agent Surface (Skill / automation scripts).
-  version: 1.0.0
-  contact:
-    name: Bluedox Team
+    Bluedox is a Markdown-aware private file cloud with snapshots, sharing,
+    and agent-native APIs. This specification covers the JSON API surface
+    used by both the CLI and programmatic agents.
+
+    All endpoints (except authentication and public share access) require
+    a valid Bearer token obtained via the login flow.
 
 servers:
-  - url: https://api.bluedox.io/v1
+  - url: https://api.bluedox.io/v0
     description: Production
-  - url: http://localhost:3001/v1
+  - url: http://localhost:3000/v0
     description: Local development
 
-# ─────────────────────────────────────────────
-# Security Schemes
-# ─────────────────────────────────────────────
-security:
-  - BearerAuth: []
+tags:
+  - name: auth
+    description: Authentication and session management
+  - name: library
+    description: Personal Library file operations
+  - name: snapshots
+    description: Snapshot (version) management
+  - name: shares
+    description: Sharing and invite management
+  - name: public
+    description: Public share access
 
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      description: |
-        Access Token issued by PocketBase Auth (TTL 1 hour), or
-        Agent API Key generated in the Web App with configurable scopes.
-    ShareAccessToken:
-      type: http
-      scheme: bearer
-      description: |
-        Temporary Share Access Token issued by POST /share-access/{share_token}/verify.
-        Used to access password-protected shared content. Prefixed with `sat_temp_`, TTL 1 hour.
-
-  # ─────────────────────────────────────────────
-  # Reusable Parameters
-  # ─────────────────────────────────────────────
-  parameters:
-    CursorParam:
-      name: cursor
-      in: query
-      description: Opaque pagination cursor
-      schema:
-        type: string
-    LimitParam:
-      name: limit
-      in: query
-      description: Page size
-      schema:
-        type: integer
-        default: 100
-        minimum: 1
-        maximum: 1000
-    PathQueryParam:
-      name: path
-      in: query
-      required: true
-      description: File path in the Personal Library
-      schema:
-        type: string
-        example: /notes.md
-    ShareIdParam:
-      name: share_id
-      in: path
-      required: true
-      description: Share ID
-      schema:
-        type: string
-        example: shr_001
-    ShareTokenParam:
-      name: share_token
-      in: path
-      required: true
-      description: Opaque, non-guessable share token
-      schema:
-        type: string
-        example: xK9mP2qR
-
-  # ─────────────────────────────────────────────
-  # Reusable Schemas
-  # ─────────────────────────────────────────────
-  schemas:
-    # ── Envelope ──
-    SuccessEnvelope:
-      type: object
-      required: [ok, data]
-      properties:
-        ok:
-          type: boolean
-          enum: [true]
-        data:
-          type: object
-
-    ErrorEnvelope:
-      type: object
-      required: [ok, error]
-      properties:
-        ok:
-          type: boolean
-          enum: [false]
-        error:
-          $ref: "#/components/schemas/ErrorDetail"
-
-    ErrorDetail:
-      type: object
-      required: [code, message]
-      properties:
-        code:
-          type: string
-          enum:
-            - VALIDATION_ERROR
-            - UNAUTHORIZED
-            - FORBIDDEN
-            - RESOURCE_NOT_FOUND
-            - CONFLICT
-            - PAYLOAD_TOO_LARGE
-            - RATE_LIMITED
-            - INTERNAL_ERROR
-            - INVALID_PASSWORD
-        message:
-          type: string
-
-    # ── Domain Objects ──
-    UserSummary:
-      type: object
-      required: [id, username]
-      properties:
-        id:
-          type: string
-          example: usr_001
-        username:
-          type: string
-          example: steven
-
-    UserFull:
-      allOf:
-        - $ref: "#/components/schemas/UserSummary"
-        - type: object
-          required: [email]
-          properties:
-            email:
-              type: string
-              format: email
-              example: steven@example.com
-
-    PathEntry:
-      type: object
-      required: [path, content_type, size_bytes, current_snapshot_id, created_at, updated_at]
-      properties:
-        path:
-          type: string
-          example: /notes.md
-        content_type:
-          type: string
-          example: text/markdown
-        size_bytes:
-          type: integer
-          example: 2048
-        current_snapshot_id:
-          type: string
-          example: snap_abc123
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    PathDetail:
-      allOf:
-        - $ref: "#/components/schemas/PathEntry"
-        - type: object
-          required: [blob_hash, snapshot_count]
-          properties:
-            blob_hash:
-              type: string
-              example: "sha256:abc123..."
-            snapshot_count:
-              type: integer
-              example: 3
-
-    SnapshotEntry:
-      type: object
-      required: [snapshot_id, version_number, blob_hash, size_bytes, created_at, is_current]
-      properties:
-        snapshot_id:
-          type: string
-          example: snap_abc123
-        version_number:
-          type: integer
-          example: 3
-        blob_hash:
-          type: string
-          example: "sha256:abc123..."
-        size_bytes:
-          type: integer
-          example: 2048
-        created_at:
-          type: string
-          format: date-time
-        is_current:
-          type: boolean
-
-    Dependency:
-      type: object
-      required: [relative_path, blob_hash]
-      properties:
-        relative_path:
-          type: string
-          example: ./images/diagram.png
-        blob_hash:
-          type: string
-          example: "sha256:dep789..."
-
-    SnapshotWarning:
-      type: object
-      required: [type, target]
-      properties:
-        type:
-          type: string
-          enum: [missing_dependency]
-        target:
-          type: string
-          example: ./assets/logo.svg
-
-    ShareRecipientUser:
-      type: object
-      required: [id, username]
-      properties:
-        id:
-          type: string
-          example: usr_002
-        username:
-          type: string
-          example: alice
-
-    ShareRecipientEmail:
-      type: object
-      required: [email]
-      properties:
-        email:
-          type: string
-          format: email
-          example: bob@example.com
-
-    ShareEntry:
-      type: object
-      required: [share_id, share_token, share_link, recipient, has_password, type, created_at]
-      properties:
-        share_id:
-          type: string
-          example: shr_001
-        share_token:
-          type: string
-          example: xK9mP2qR
-        share_link:
-          type: string
-          format: uri
-          example: https://app.bluedox.io/s/xK9mP2qR
-        path:
-          type: string
-          example: /notes.md
-        recipient:
-          oneOf:
-            - $ref: "#/components/schemas/ShareRecipientUser"
-            - $ref: "#/components/schemas/ShareRecipientEmail"
-        has_password:
-          type: boolean
-        password:
-          type: string
-          description: |
-            Only returned when the owner requests GET /shares/{share_id}.
-            Stored encrypted at rest on the server, not one-way hashed.
-        type:
-          type: string
-          enum: [share, invite]
-        created_at:
-          type: string
-          format: date-time
-
-    SharedWithMeItem:
-      type: object
-      required: [share_id, share_token, share_link, path_name, owner, has_password, updated_at]
-      properties:
-        share_id:
-          type: string
-        share_token:
-          type: string
-        share_link:
-          type: string
-          format: uri
-        path_name:
-          type: string
-          example: report.md
-        owner:
-          $ref: "#/components/schemas/UserSummary"
-        has_password:
-          type: boolean
-        updated_at:
-          type: string
-          format: date-time
-
-    AuditEvent:
-      type: object
-      required: [event_id, action, actor, timestamp]
-      properties:
-        event_id:
-          type: string
-          example: evt_001
-        action:
-          type: string
-          enum:
-            - auth.login
-            - library.upload
-            - share.create
-            - invite.create
-            - share.password_view
-            - share.password_change
-            - share.revoke
-            - snapshot.restore
-        actor:
-          $ref: "#/components/schemas/UserSummary"
-        target_path:
-          type: string
-          example: /notes.md
-        metadata:
-          type: object
-          additionalProperties: true
-        timestamp:
-          type: string
-          format: date-time
-
-  # ─────────────────────────────────────────────
-  # Reusable Responses
-  # ─────────────────────────────────────────────
-  responses:
-    BadRequest:
-      description: Invalid request parameters
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
-          example:
-            ok: false
-            error:
-              code: VALIDATION_ERROR
-              message: "Field 'path' is required"
-    Unauthorized:
-      description: Missing or expired token
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
-          example:
-            ok: false
-            error:
-              code: UNAUTHORIZED
-              message: "Missing or expired token"
-    Forbidden:
-      description: Insufficient permissions
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
-          example:
-            ok: false
-            error:
-              code: FORBIDDEN
-              message: "Insufficient permissions"
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
-          example:
-            ok: false
-            error:
-              code: RESOURCE_NOT_FOUND
-              message: "Resource not found"
-    Conflict:
-      description: Duplicate resource conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
-          example:
-            ok: false
-            error:
-              code: CONFLICT
-              message: "Share already exists for this path and recipient"
-    RateLimited:
-      description: Rate limit exceeded
-      headers:
-        Retry-After:
-          schema:
-            type: integer
-          description: Seconds to wait before retrying
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorEnvelope"
-          example:
-            ok: false
-            error:
-              code: RATE_LIMITED
-              message: "Rate limit exceeded"
-
-# ═════════════════════════════════════════════
-# Paths
-# ═════════════════════════════════════════════
 paths:
+  # ── Auth ────────────────────────────────────────────────────────────
 
-  # ── Auth ──────────────────────────────────
-
-  /auth/cli-session:
+  /auth/login:
     post:
-      operationId: createCliSession
-      tags: [Auth]
-      summary: Create a CLI login session
+      operationId: startLogin
+      tags: [auth]
+      summary: Start browser-based login flow
       description: |
-        First step of the browser-based CLI authentication flow.
-        Returns an auth URL and session ID for the CLI to open in the browser.
-      security: []
+        Initiates a browser-based OAuth session. Returns a URL the client
+        must open and a session token to poll for completion.
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
               type: object
-              required: [callback_port]
               properties:
-                callback_port:
-                  type: integer
-                  description: Local callback server port on the CLI side (49152–65535)
-                  minimum: 49152
-                  maximum: 65535
-                  example: 52431
+                force:
+                  type: boolean
+                  default: false
+                  description: Re-authenticate even if already logged in.
       responses:
         "200":
-          description: Session created
+          description: Login flow initiated
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, login_url, session_token, expires_in]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [session_id, auth_url, expires_in]
-                    properties:
-                      session_id:
-                        type: string
-                        example: sess_abc123
-                      auth_url:
-                        type: string
-                        format: uri
-                        example: https://app.bluedox.io/auth/cli?session=sess_abc123
-                      expires_in:
-                        type: integer
-                        description: Session TTL in seconds
-                        example: 300
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "429":
-          $ref: "#/components/responses/RateLimited"
+                  status:
+                    type: string
+                    const: ok
+                  login_url:
+                    type: string
+                    format: uri
+                    description: URL the user must open in a browser.
+                  session_token:
+                    type: string
+                    description: Opaque token used to poll login status.
+                  expires_in:
+                    type: integer
+                    description: Seconds until the login session expires (120).
+        "500":
+          $ref: "#/components/responses/ServerError"
 
-  /auth/cli-callback:
+  /auth/login/poll:
     post:
-      operationId: cliCallback
-      tags: [Auth]
-      summary: Exchange auth code for tokens
-      description: Called after the user completes authentication in the browser.
-      security: []
+      operationId: pollLogin
+      tags: [auth]
+      summary: Poll for login completion
+      description: |
+        Polls the login session started by `startLogin`. Returns credentials
+        once the user completes authentication in the browser.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [session_id, auth_code]
+              required: [session_token]
               properties:
-                session_id:
+                session_token:
                   type: string
-                  example: sess_abc123
-                auth_code:
-                  type: string
+                  description: Session token from `startLogin`.
       responses:
         "200":
-          description: Token exchange successful
+          description: Login complete
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, user, access_token, refresh_token]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [access_token, refresh_token, expires_at, user]
-                    properties:
-                      access_token:
-                        type: string
-                      refresh_token:
-                        type: string
-                      expires_at:
-                        type: string
-                        format: date-time
-                      user:
-                        $ref: "#/components/schemas/UserFull"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "404":
-          description: Session not found or expired
+                  status:
+                    type: string
+                    const: ok
+                  user:
+                    type: string
+                    format: email
+                    description: Authenticated user email.
+                  access_token:
+                    type: string
+                    description: Bearer token for API access.
+                  refresh_token:
+                    type: string
+                    description: Token used to refresh the access token.
+        "202":
+          description: Login still pending
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    const: pending
+        "408":
+          description: Login timed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                status: error
+                code: 1
+                message: "Login timed out. Try again."
+        "500":
+          $ref: "#/components/responses/ServerError"
 
-  /auth/refresh:
+  /auth/logout:
     post:
-      operationId: refreshToken
-      tags: [Auth]
-      summary: Refresh an access token
-      security: []
+      operationId: logout
+      tags: [auth]
+      summary: End the current session
+      description: Revokes the current access and refresh tokens.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+
+  /auth/whoami:
+    get:
+      operationId: whoami
+      tags: [auth]
+      summary: Get current user
+      description: Returns the email of the currently authenticated user.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, user]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  user:
+                    type: string
+                    format: email
+        "401":
+          $ref: "#/components/responses/AuthError"
+
+  # ── Library ─────────────────────────────────────────────────────────
+
+  /library/files:
+    get:
+      operationId: listFiles
+      tags: [library]
+      summary: List files in Personal Library
+      description: Returns all files the authenticated user owns.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: File list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, files]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FileEntry"
+        "401":
+          $ref: "#/components/responses/AuthError"
+
+  /library/files/resolve-dependencies:
+    post:
+      operationId: resolveDependencies
+      tags: [library]
+      summary: Resolve Markdown dependencies
+      description: |
+        Parses a Markdown file and returns the list of relative image
+        references it contains, indicating which are present and which
+        are missing.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [refresh_token]
+              required: [path]
               properties:
-                refresh_token:
+                path:
                   type: string
+                  description: Path of the Markdown file to inspect.
+                  example: /notes.md
       responses:
         "200":
-          description: Token refreshed
+          description: Resolved dependencies
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, path, dependencies]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [access_token, expires_at]
-                    properties:
-                      access_token:
-                        type: string
-                      expires_at:
-                        type: string
-                        format: date-time
+                  status:
+                    type: string
+                    const: ok
+                  path:
+                    type: string
+                  dependencies:
+                    type: array
+                    items:
+                      type: object
+                      required: [path, exists]
+                      properties:
+                        path:
+                          type: string
+                          description: Relative path referenced in the Markdown.
+                        exists:
+                          type: boolean
+                          description: Whether this dependency exists in the library.
         "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /auth/me:
-    get:
-      operationId: getMe
-      tags: [Auth]
-      summary: Get current authenticated user
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    $ref: "#/components/schemas/UserFull"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  # ── Users ─────────────────────────────────
-
-  /users/resolve:
-    get:
-      operationId: resolveUser
-      tags: [Users]
-      summary: Resolve a user by username or email
-      description: Used before creating a Share to confirm the recipient's identity.
-      parameters:
-        - name: q
-          in: query
-          required: true
-          description: Username or email address
-          schema:
-            type: string
-            example: alice
-      responses:
-        "200":
-          description: Query completed (returns 200 whether or not the user was found)
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [found]
-                    properties:
-                      found:
-                        type: boolean
-                      user:
-                        $ref: "#/components/schemas/UserSummary"
-                        description: Present only when found is true
-                      query:
-                        type: string
-                        description: Present only when found is false
-                      is_email:
-                        type: boolean
-                        description: Present only when found is false; indicates whether the query is an email
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  # ── Library ───────────────────────────────
-
-  /library:
-    get:
-      operationId: listLibrary
-      tags: [Library]
-      summary: List files in the Personal Library
-      parameters:
-        - name: prefix
-          in: query
-          description: Path prefix filter
-          schema:
-            type: string
-            default: /
-        - $ref: "#/components/parameters/LimitParam"
-        - $ref: "#/components/parameters/CursorParam"
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [paths]
-                    properties:
-                      paths:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/PathEntry"
-                      next_cursor:
-                        type: string
-                        nullable: true
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /library/path:
-    get:
-      operationId: getPath
-      tags: [Library]
-      summary: Get details for a single path
-      parameters:
-        - $ref: "#/components/parameters/PathQueryParam"
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    $ref: "#/components/schemas/PathDetail"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/AuthError"
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Blobs ─────────────────────────────────
+  /library/blobs:
+    post:
+      operationId: uploadBlobs
+      tags: [library]
+      summary: Upload content-addressed blobs
+      description: |
+        Uploads one or more content-addressed blobs. The server deduplicates
+        by hash. Only blobs the server does not already have need to be sent.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [blobs]
+              properties:
+                blobs:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: One or more file blobs to upload.
+      responses:
+        "200":
+          description: Blobs accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, received]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  received:
+                    type: array
+                    items:
+                      type: object
+                      required: [hash, size]
+                      properties:
+                        hash:
+                          type: string
+                          description: Content hash of the blob.
+                        size:
+                          type: integer
+                          description: Size in bytes.
+        "401":
+          $ref: "#/components/responses/AuthError"
 
-  /blobs/check:
+  /library/blobs/check:
     post:
       operationId: checkBlobs
-      tags: [Blobs]
-      summary: Check which blobs already exist on the server
+      tags: [library]
+      summary: Check which blobs the server already has
       description: |
-        Client sends a list of SHA-256 hashes. Server returns only the missing ones.
-        Only missing blobs need to be uploaded.
+        Given a list of content hashes, returns which ones the server
+        already stores. The client should only upload missing blobs.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -723,137 +343,122 @@ paths:
                   type: array
                   items:
                     type: string
-                  example:
-                    - "sha256:abc123..."
-                    - "sha256:def456..."
+                  description: List of content hashes to check.
       responses:
         "200":
-          description: Success
+          description: Blob presence check
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, missing]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [missing]
-                    properties:
-                      missing:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - "sha256:def456..."
+                  status:
+                    type: string
+                    const: ok
+                  missing:
+                    type: array
+                    items:
+                      type: string
+                    description: Hashes the server does not have.
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/AuthError"
 
-  /blobs/upload:
+  /library/upload:
     post:
-      operationId: uploadBlob
-      tags: [Blobs]
-      summary: Upload a single blob
+      operationId: uploadFile
+      tags: [library]
+      summary: Upload a file and create a snapshot
       description: |
-        Uploads raw file content as `application/octet-stream`.
-        The server re-computes the hash after receiving the blob and returns 400 if it
-        does not match the `X-Blob-Hash` header.
-      parameters:
-        - name: X-Blob-Hash
-          in: header
-          required: true
-          description: Client-computed SHA-256 hash of the blob
-          schema:
-            type: string
-            example: "sha256:def456..."
-        - name: X-Content-Type
-          in: header
-          required: true
-          description: MIME type of the file
-          schema:
-            type: string
-            example: text/markdown
+        High-level upload endpoint. Accepts a single file, creates the
+        content-addressed blob, and commits a new Snapshot for the path.
+        For Markdown files, parses relative image references and returns
+        warnings for any missing dependencies.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+                path:
+                  type: string
+                  description: |
+                    Target path in the Personal Library. If omitted, derived
+                    from the uploaded filename.
+                  example: /docs/notes.md
       responses:
         "200":
-          description: Upload successful
+          description: File uploaded, snapshot created
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, file, path, snapshot]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [blob_hash, size_bytes]
-                    properties:
-                      blob_hash:
-                        type: string
-                        example: "sha256:def456..."
-                      size_bytes:
-                        type: integer
-                        example: 1024
-        "400":
-          description: Hash mismatch between header and actual content
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
+                  status:
+                    type: string
+                    const: ok
+                  file:
+                    type: string
+                    description: Uploaded filename.
+                  path:
+                    type: string
+                    description: Path in Personal Library.
+                  snapshot:
+                    type: string
+                    description: Snapshot identifier.
+                  warnings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Warning"
+              example:
+                status: ok
+                file: notes.md
+                path: /notes.md
+                snapshot: abc123def
+                warnings:
+                  - type: missing_dependency
+                    path: images/diagram.png
         "401":
-          $ref: "#/components/responses/Unauthorized"
-        "413":
-          description: File exceeds size limit
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
-        "429":
-          $ref: "#/components/responses/RateLimited"
+          $ref: "#/components/responses/AuthError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
 
-  # ── Snapshots ─────────────────────────────
+  # ── Snapshots ───────────────────────────────────────────────────────
 
-  /snapshots:
+  /library/snapshots:
     post:
       operationId: createSnapshot
-      tags: [Snapshots]
-      summary: Commit a new snapshot
-      description: Creates an immutable version record for a path.
+      tags: [snapshots]
+      summary: Create a snapshot from uploaded blobs
+      description: |
+        Commits a new immutable Snapshot for a path, referencing
+        previously uploaded blobs by hash.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [path, blob_hash, content_type]
+              required: [path, hash]
               properties:
                 path:
                   type: string
+                  description: Path in Personal Library.
                   example: /notes.md
-                blob_hash:
+                hash:
                   type: string
-                  example: "sha256:abc123..."
-                content_type:
-                  type: string
-                  example: text/markdown
-                dependencies:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/Dependency"
-                warnings:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/SnapshotWarning"
+                  description: Content hash of the blob for this snapshot.
       responses:
         "201":
           description: Snapshot created
@@ -861,277 +466,275 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, path, snapshot]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [snapshot_id, path, version_number, blob_hash, created_at]
-                    properties:
-                      snapshot_id:
-                        type: string
-                        example: snap_abc123
-                      path:
-                        type: string
-                        example: /notes.md
-                      version_number:
-                        type: integer
-                        example: 3
-                      blob_hash:
-                        type: string
-                      created_at:
-                        type: string
-                        format: date-time
-        "400":
-          $ref: "#/components/responses/BadRequest"
+                  status:
+                    type: string
+                    const: ok
+                  path:
+                    type: string
+                  snapshot:
+                    type: string
+                    description: New snapshot identifier.
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/AuthError"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
+  /library/files/{path}/versions:
     get:
-      operationId: listSnapshots
-      tags: [Snapshots]
-      summary: List version history for a path
+      operationId: listVersions
+      tags: [snapshots]
+      summary: List version history for a file
+      description: Returns all snapshots for the given path, newest first.
+      security:
+        - bearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/PathQueryParam"
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 50
-            minimum: 1
-            maximum: 200
-        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/FilePath"
       responses:
         "200":
-          description: Success
+          description: Version list
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, path, versions]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [path, snapshots]
-                    properties:
-                      path:
-                        type: string
-                      snapshots:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/SnapshotEntry"
-                      next_cursor:
-                        type: string
-                        nullable: true
+                  status:
+                    type: string
+                    const: ok
+                  path:
+                    type: string
+                  versions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Snapshot"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/AuthError"
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /snapshots/restore:
+  /library/files/{path}/restore:
     post:
-      operationId: restoreSnapshot
-      tags: [Snapshots]
-      summary: Restore a path to a previous snapshot
+      operationId: restoreVersion
+      tags: [snapshots]
+      summary: Restore a prior version
       description: |
-        Restore never mutates history. It creates a new snapshot whose content matches
-        the target version. Because shares point to a live path, recipients see the
-        restored state immediately after restore.
+        Creates a new Snapshot whose content matches the specified prior
+        snapshot. History is never mutated; restore always appends.
+        Because Shares point to the live Path, recipients see the
+        restored state automatically.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/FilePath"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [path, target_snapshot_id]
+              required: [snapshot]
               properties:
-                path:
+                snapshot:
                   type: string
-                  example: /notes.md
-                target_snapshot_id:
-                  type: string
-                  example: snap_def456
+                  description: Identifier of the snapshot to restore.
       responses:
-        "201":
-          description: Restore successful; new snapshot created
+        "200":
+          description: Version restored
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, path, snapshot]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [new_snapshot_id, version_number, restored_from, created_at]
-                    properties:
-                      new_snapshot_id:
-                        type: string
-                        example: snap_ghi789
-                      version_number:
-                        type: integer
-                        example: 4
-                      restored_from:
-                        type: string
-                        example: snap_def456
-                      created_at:
-                        type: string
-                        format: date-time
+                  status:
+                    type: string
+                    const: ok
+                  path:
+                    type: string
+                  snapshot:
+                    type: string
+                    description: Identifier of the newly created snapshot.
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/AuthError"
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Shares ────────────────────────────────
+  # ── Shares ──────────────────────────────────────────────────────────
 
   /shares:
+    get:
+      operationId: listShares
+      tags: [shares]
+      summary: List shares on a path
+      description: Returns all active Shares for the given path owned by the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Path in Personal Library to list shares for.
+          example: /notes.md
+      responses:
+        "200":
+          description: Share list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, path, shares]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  path:
+                    type: string
+                  shares:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Share"
+        "401":
+          $ref: "#/components/responses/AuthError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
     post:
       operationId: createShare
-      tags: [Shares]
-      summary: Create a share
-      description: Creates a viewer-only share for an uploaded file.
+      tags: [shares]
+      summary: Create a share or invite
+      description: |
+        Creates a viewer-only Share for an existing file. If the target
+        user does not have an account, an Invite is created and sent
+        to the provided email.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [path, recipient_user_id]
+              required: [path, to]
               properties:
                 path:
                   type: string
+                  description: Path in Personal Library.
                   example: /notes.md
-                recipient_user_id:
+                to:
                   type: string
-                  example: usr_002
+                  description: Target username or email.
+                  example: steve@example.com
                 password:
                   type: string
-                  nullable: true
-                  description: Optional share password. Omit or set to null for no password.
+                  description: Optional password to protect the share.
       responses:
         "201":
-          description: Share created
+          description: Share or invite created
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, path, to, type, link, password_set]
                 properties:
-                  ok:
+                  status:
+                    type: string
+                    const: ok
+                  path:
+                    type: string
+                  to:
+                    type: string
+                  type:
+                    type: string
+                    enum: [share, invite]
+                    description: |
+                      `share` if the target user exists, `invite` if an
+                      invitation email was sent.
+                  link:
+                    type: string
+                    format: uri
+                    description: Canonical share link.
+                    example: https://app.bluedox.io/s/a8f3k2x9
+                  password_set:
                     type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [share_id, share_token, share_link, path, recipient, has_password, created_at]
-                    properties:
-                      share_id:
-                        type: string
-                        example: shr_001
-                      share_token:
-                        type: string
-                        example: xK9mP2qR
-                      share_link:
-                        type: string
-                        format: uri
-                        example: https://app.bluedox.io/s/xK9mP2qR
-                      path:
-                        type: string
-                      recipient:
-                        $ref: "#/components/schemas/ShareRecipientUser"
-                      has_password:
-                        type: boolean
-                      created_at:
-                        type: string
-                        format: date-time
-        "400":
-          $ref: "#/components/responses/BadRequest"
+              examples:
+                direct_share:
+                  summary: Share to existing user
+                  value:
+                    status: ok
+                    path: /notes.md
+                    to: steve@example.com
+                    type: share
+                    link: https://app.bluedox.io/s/a8f3k2x9
+                    password_set: true
+                invite:
+                  summary: Invite to new user
+                  value:
+                    status: ok
+                    path: /notes.md
+                    to: newuser@example.com
+                    type: invite
+                    link: https://app.bluedox.io/s/a8f3k2x9
+                    password_set: false
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/AuthError"
         "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-
-    get:
-      operationId: listShares
-      tags: [Shares]
-      summary: List all active shares on a path
-      description: Owner only. Returns a unified list of shares and invites.
-      parameters:
-        - $ref: "#/components/parameters/PathQueryParam"
-      responses:
-        "200":
-          description: Success
+          description: Path not found
           content:
             application/json:
               schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [path, shares]
-                    properties:
-                      path:
-                        type: string
-                      shares:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/ShareEntry"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+                $ref: "#/components/schemas/Error"
+              example:
+                status: error
+                code: 3
+                message: "Path not found: /notes.md. Upload it first."
+        "422":
+          $ref: "#/components/responses/ValidationError"
 
   /shares/{share_id}:
-    parameters:
-      - $ref: "#/components/parameters/ShareIdParam"
-
     get:
       operationId: getShare
-      tags: [Shares]
-      summary: Get share details including password (owner only)
+      tags: [shares]
+      summary: Get share details including link and password
       description: |
-        Returns the share password in plaintext (stored encrypted at rest on the server).
-        This operation produces a `share.password_view` audit event.
+        Returns full details of a Share, including the canonical link
+        and the password (owner-only). This is the only endpoint that
+        returns the share password.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ShareId"
       responses:
         "200":
-          description: Success
+          description: Share details
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, share]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    $ref: "#/components/schemas/ShareEntry"
+                  status:
+                    type: string
+                    const: ok
+                  share:
+                    $ref: "#/components/schemas/ShareDetail"
         "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: "#/components/responses/AuthError"
         "404":
           $ref: "#/components/responses/NotFound"
 
     patch:
       operationId: updateShare
-      tags: [Shares]
-      summary: Update share settings (password change)
-      description: |
-        Owner only. Send `password: "new-value"` to set a new password,
-        or `password: null` to remove the password.
+      tags: [shares]
+      summary: Update share password
+      description: Change or remove the password on a Share. Owner-only.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ShareId"
       requestBody:
         required: true
         content:
@@ -1140,208 +743,138 @@ paths:
               type: object
               properties:
                 password:
-                  type: string
-                  nullable: true
-                  description: New password, or null to remove the password.
+                  type:
+                    - string
+                    - "null"
+                  description: |
+                    New password value. Set to `null` to remove
+                    password protection.
       responses:
         "200":
-          description: Updated
+          description: Share updated
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, password_set]
                 properties:
-                  ok:
+                  status:
+                    type: string
+                    const: ok
+                  password_set:
                     type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [share_id, has_password, updated_at]
-                    properties:
-                      share_id:
-                        type: string
-                      has_password:
-                        type: boolean
-                      updated_at:
-                        type: string
-                        format: date-time
         "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: "#/components/responses/AuthError"
         "404":
           $ref: "#/components/responses/NotFound"
 
     delete:
       operationId: revokeShare
-      tags: [Shares]
+      tags: [shares]
       summary: Revoke a share
-      description: The share link is invalidated immediately.
+      description: |
+        Revokes a Share, invalidating its canonical link. Owner-only.
+        This action cannot be undone.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ShareId"
       responses:
         "200":
-          description: Revoked
+          description: Share revoked
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [share_id, revoked_at]
-                    properties:
-                      share_id:
-                        type: string
-                      revoked_at:
-                        type: string
-                        format: date-time
+                  status:
+                    type: string
+                    const: ok
         "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: "#/components/responses/AuthError"
         "404":
           $ref: "#/components/responses/NotFound"
 
-  # ── Invites ───────────────────────────────
-
-  /invites:
-    post:
-      operationId: createInvite
-      tags: [Invites]
-      summary: Create an invite for an unregistered user
-      description: |
-        When the recipient email does not match an existing account, create an Invite
-        instead of a Share. The invite auto-converts to a Share when the recipient signs up.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [path, email]
-              properties:
-                path:
-                  type: string
-                  example: /notes.md
-                email:
-                  type: string
-                  format: email
-                  example: bob@example.com
-                password:
-                  type: string
-                  nullable: true
-                  description: Optional share password
-      responses:
-        "201":
-          description: Invite created
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [invite_id, share_token, share_link, path, email, has_password, created_at]
-                    properties:
-                      invite_id:
-                        type: string
-                        example: inv_001
-                      share_token:
-                        type: string
-                        example: yL3nQ7wT
-                      share_link:
-                        type: string
-                        format: uri
-                      path:
-                        type: string
-                      email:
-                        type: string
-                        format: email
-                      has_password:
-                        type: boolean
-                      created_at:
-                        type: string
-                        format: date-time
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "409":
-          $ref: "#/components/responses/Conflict"
-
-  # ── Share Access (Public) ─────────────────
-
-  /share-access/{share_token}:
-    parameters:
-      - $ref: "#/components/parameters/ShareTokenParam"
-
+  /shared-with-me:
     get:
-      operationId: getShareAccess
-      tags: [Share Access]
-      summary: Access a shared file via share token
-      description: |
-        Public endpoint. If the share is password-protected, returns
-        `requires_password: true` and the client must call the verify endpoint first.
-      security: []
+      operationId: listSharedWithMe
+      tags: [shares]
+      summary: List files shared with the current user
+      description: Returns all files other users have shared with the authenticated user.
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: Success
+          description: Shared files
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, files]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [requires_password, path_name]
-                    properties:
-                      requires_password:
-                        type: boolean
-                      path_name:
-                        type: string
-                        example: notes.md
-                      owner:
-                        type: object
-                        properties:
-                          username:
-                            type: string
-                      content_type:
-                        type: string
-                        description: Only returned when no password is required
-                      content_url:
-                        type: string
-                        description: Only returned when no password is required
-        "404":
-          description: Invalid or revoked share token
+                  status:
+                    type: string
+                    const: ok
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SharedFile"
+        "401":
+          $ref: "#/components/responses/AuthError"
+
+  # ── Public Share Access ─────────────────────────────────────────────
+
+  /s/{share_token}:
+    get:
+      operationId: getSharedContent
+      tags: [public]
+      summary: Access shared content via share link
+      description: |
+        Opens shared content by token. If the Share is password-protected,
+        returns a `password_required` status. The client must then POST
+        with the password.
+      parameters:
+        - $ref: "#/components/parameters/ShareToken"
+      responses:
+        "200":
+          description: Shared content
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
-
-  /share-access/{share_token}/verify:
-    parameters:
-      - $ref: "#/components/parameters/ShareTokenParam"
+                type: object
+                required: [status, file]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  file:
+                    $ref: "#/components/schemas/SharedFileContent"
+        "403":
+          description: Password required
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    const: password_required
+        "404":
+          description: Share not found or revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
     post:
-      operationId: verifySharePassword
-      tags: [Share Access]
-      summary: Verify a share password
-      description: |
-        On success, returns a temporary access token (prefixed `sat_temp_`, TTL 1 hour)
-        that grants access to the shared content.
-      security: []
+      operationId: unlockSharedContent
+      tags: [public]
+      summary: Unlock password-protected shared content
+      description: Submits the password for a password-protected Share.
+      parameters:
+        - $ref: "#/components/parameters/ShareToken"
       requestBody:
         required: true
         content:
@@ -1354,209 +887,268 @@ paths:
                   type: string
       responses:
         "200":
-          description: Password verified
+          description: Content unlocked
           content:
             application/json:
               schema:
                 type: object
-                required: [ok, data]
+                required: [status, file]
                 properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [verified, access_token, expires_in, content_url]
-                    properties:
-                      verified:
-                        type: boolean
-                        enum: [true]
-                      access_token:
-                        type: string
-                        description: Temporary share access token
-                        example: sat_temp_abc123
-                      expires_in:
-                        type: integer
-                        description: Token TTL in seconds
-                        example: 3600
-                      content_url:
-                        type: string
+                  status:
+                    type: string
+                    const: ok
+                  file:
+                    $ref: "#/components/schemas/SharedFileContent"
         "401":
-          description: Incorrect password
+          description: Wrong password
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorEnvelope"
+                $ref: "#/components/schemas/Error"
               example:
-                ok: false
-                error:
-                  code: INVALID_PASSWORD
-                  message: Incorrect password
+                status: error
+                code: 2
+                message: "Incorrect password."
         "404":
-          $ref: "#/components/responses/NotFound"
-        "429":
-          $ref: "#/components/responses/RateLimited"
-
-  /share-access/{share_token}/content:
-    parameters:
-      - $ref: "#/components/parameters/ShareTokenParam"
-
-    get:
-      operationId: getSharedContent
-      tags: [Share Access]
-      summary: Download shared file content
-      description: |
-        No auth required for shares without a password. For password-protected shares,
-        provide the temporary token from the verify endpoint. Returns raw file content
-        with the appropriate Content-Type header.
-      security:
-        - {}
-        - ShareAccessToken: []
-      responses:
-        "200":
-          description: File content
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-            text/markdown:
-              schema:
-                type: string
-            image/*:
-              schema:
-                type: string
-                format: binary
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  # ── Shared With Me ────────────────────────
-
-  /shared-with-me:
-    get:
-      operationId: listSharedWithMe
-      tags: [Shared With Me]
-      summary: List content shared with the current user
-      parameters:
-        - $ref: "#/components/parameters/LimitParam"
-        - $ref: "#/components/parameters/CursorParam"
-      responses:
-        "200":
-          description: Success
+          description: Share not found or revoked
           content:
             application/json:
               schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [items]
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/SharedWithMeItem"
-                      next_cursor:
-                        type: string
-                        nullable: true
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+                $ref: "#/components/schemas/Error"
 
-  # ── Audit Log ─────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 
-  /audit-log:
-    get:
-      operationId: listAuditLog
-      tags: [Audit Log]
-      summary: Query the audit log
-      description: Returns security-relevant events for the authenticated account.
-      parameters:
-        - name: action
-          in: query
-          description: Filter by action type
-          schema:
-            type: string
-            enum:
-              - auth.login
-              - library.upload
-              - share.create
-              - invite.create
-              - share.password_view
-              - share.password_change
-              - share.revoke
-              - snapshot.restore
-        - name: path
-          in: query
-          description: Filter by file path
-          schema:
-            type: string
-        - name: since
-          in: query
-          description: ISO 8601 start time
-          schema:
-            type: string
-            format: date-time
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 100
-            minimum: 1
-            maximum: 1000
-        - $ref: "#/components/parameters/CursorParam"
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [ok, data]
-                properties:
-                  ok:
-                    type: boolean
-                    enum: [true]
-                  data:
-                    type: object
-                    required: [events]
-                    properties:
-                      events:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/AuditEvent"
-                      next_cursor:
-                        type: string
-                        nullable: true
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Access token obtained via the login flow.
 
-# ═════════════════════════════════════════════
-# Tags
-# ═════════════════════════════════════════════
-tags:
-  - name: Auth
-    description: Authentication endpoints
-  - name: Users
-    description: User resolution
-  - name: Library
-    description: Personal Library file management
-  - name: Blobs
-    description: Content-addressed blob storage (deduplicated uploads)
-  - name: Snapshots
-    description: Immutable version history
-  - name: Shares
-    description: Share management (owner operations)
-  - name: Invites
-    description: Invite unregistered users by email
-  - name: Share Access
-    description: Public share access endpoints
-  - name: Shared With Me
-    description: Content shared by other users
-  - name: Audit Log
-    description: Security audit trail
+  parameters:
+    FilePath:
+      name: path
+      in: path
+      required: true
+      schema:
+        type: string
+      description: URL-encoded file path in Personal Library.
+      example: "%2Fnotes.md"
+
+    ShareId:
+      name: share_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique share identifier.
+
+    ShareToken:
+      name: share_token
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Opaque, non-guessable share token from the canonical link.
+
+  schemas:
+    Error:
+      type: object
+      required: [status, code, message]
+      properties:
+        status:
+          type: string
+          const: error
+        code:
+          type: integer
+          description: |
+            Exit-code-aligned error category.
+            1 = general error, 2 = auth error, 3 = validation error.
+          enum: [1, 2, 3]
+        message:
+          type: string
+
+    Warning:
+      type: object
+      required: [type, path]
+      properties:
+        type:
+          type: string
+          enum: [missing_dependency]
+        path:
+          type: string
+          description: Relative path of the missing dependency.
+
+    FileEntry:
+      type: object
+      required: [path, size, created_at, updated_at, latest_snapshot]
+      properties:
+        path:
+          type: string
+          example: /notes.md
+        size:
+          type: integer
+          description: Size in bytes of the latest snapshot.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        latest_snapshot:
+          type: string
+          description: Identifier of the most recent snapshot.
+
+    Snapshot:
+      type: object
+      required: [snapshot, hash, size, created_at]
+      properties:
+        snapshot:
+          type: string
+          description: Snapshot identifier.
+        hash:
+          type: string
+          description: Content hash of the blob.
+        size:
+          type: integer
+          description: Size in bytes.
+        created_at:
+          type: string
+          format: date-time
+
+    Share:
+      type: object
+      required: [share_id, to, type, link, password_set, created_at]
+      properties:
+        share_id:
+          type: string
+        to:
+          type: string
+          description: Recipient username or email.
+        type:
+          type: string
+          enum: [share, invite]
+        link:
+          type: string
+          format: uri
+          example: https://app.bluedox.io/s/a8f3k2x9
+        password_set:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ShareDetail:
+      type: object
+      required: [share_id, path, to, type, link, password_set, created_at]
+      properties:
+        share_id:
+          type: string
+        path:
+          type: string
+        to:
+          type: string
+        type:
+          type: string
+          enum: [share, invite]
+        link:
+          type: string
+          format: uri
+        password:
+          type: string
+          description: |
+            Share password in plaintext. Only returned to the owner.
+            Null when no password is set.
+        password_set:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    SharedFile:
+      type: object
+      required: [path, owner, updated_at]
+      properties:
+        path:
+          type: string
+        owner:
+          type: string
+          description: Owner username or email.
+        updated_at:
+          type: string
+          format: date-time
+
+    SharedFileContent:
+      type: object
+      required: [path, owner, content_type, snapshot, updated_at]
+      properties:
+        path:
+          type: string
+        owner:
+          type: string
+        content_type:
+          type: string
+          description: MIME type of the file.
+          example: text/markdown
+        snapshot:
+          type: string
+          description: Current snapshot identifier.
+        content_url:
+          type: string
+          format: uri
+          description: URL to download the file content.
+        updated_at:
+          type: string
+          format: date-time
+
+  responses:
+    AuthError:
+      description: Authentication required or session expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            not_logged_in:
+              value:
+                status: error
+                code: 2
+                message: "Not logged in. Run bluedox login."
+            expired:
+              value:
+                status: error
+                code: 2
+                message: "Session expired. Run bluedox login."
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            code: 3
+            message: "Not found."
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            code: 3
+            message: "Validation failed."
+
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            status: error
+            code: 1
+            message: "Internal server error."
