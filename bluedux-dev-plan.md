@@ -1,4 +1,4 @@
-# Bluedox v0 Development Plan
+# Bluedux v0 Development Plan
 
 > Based on PRD + CLI Spec + UX Mockups
 
@@ -11,7 +11,7 @@
 | # | Task | Deliverable | Notes |
 |---|------|-------------|-------|
 | 0.1 | Monorepo init | `packages/cli`, `packages/web`, `packages/server` | pnpm workspace |
-| 0.2 | Backend scaffold | Node.js + SQLite + PocketBase Auth | Hono or Express; SQLite via better-sqlite3 and Drizzle |
+| 0.2 | Backend scaffold | Node.js + SQLite + PocketBase Auth | Express; SQLite via better-sqlite3 and Drizzle |
 | 0.3 | Frontend scaffold | Next.js app (shell + Tailwind) | Align CSS variables with UX mockup design tokens |
 | 0.4 | CLI scaffold | `bluedux` binary entry + Commander/yargs | Support `--json`, `--help`, `--version` global conventions |
 | 0.5 | Database schema v0 | accounts, paths, snapshots, blobs, shares, invites, audit_logs | Migration tool: Drizzle Kit |

@@ -55,7 +55,7 @@
                   "id": "0rZ5e",
                   "name": "logoText",
                   "fill": "$--text-primary",
-                  "content": "Bluedox",
+                  "content": "Bluedux",
                   "fontFamily": "Cormorant Garamond",
                   "fontSize": 22,
                   "fontWeight": "600"
@@ -76,7 +76,7 @@
                   "id": "eCUk2",
                   "name": "headline",
                   "fill": "$--text-primary",
-                  "content": "Sign in to Bluedox",
+                  "content": "Sign in to Bluedux",
                   "textAlign": "center",
                   "fontFamily": "Cormorant Garamond",
                   "fontSize": 32,
@@ -235,7 +235,7 @@
               "id": "5bdHS",
               "name": "footerText",
               "fill": "$--accent",
-              "content": "New to Bluedox? Create account",
+              "content": "New to Bluedux? Create account",
               "fontFamily": "Outfit",
               "fontSize": 13
             }
@@ -2332,7 +2332,7 @@
                   "fill": "$--text-secondary",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "This document outlines the key decisions and progress updates for the Bluedox project. All team members should review before the next sprint planning.",
+                  "content": "This document outlines the key decisions and progress updates for the Bluedux project. All team members should review before the next sprint planning.",
                   "lineHeight": 1.5,
                   "fontFamily": "Outfit",
                   "fontSize": 14
@@ -3852,7 +3852,7 @@
                       "id": "T4nuc",
                       "name": "slLogoText",
                       "fill": "$--text-primary",
-                      "content": "Bluedox",
+                      "content": "Bluedux",
                       "fontFamily": "Cormorant Garamond",
                       "fontSize": 22,
                       "fontWeight": "600"
@@ -4264,7 +4264,7 @@
                   "id": "M7XbP",
                   "name": "logoName",
                   "fill": "$--text-primary",
-                  "content": "Bluedox",
+                  "content": "Bluedux",
                   "fontFamily": "Cormorant Garamond",
                   "fontSize": 20,
                   "fontWeight": "600"
@@ -4553,7 +4553,7 @@
                   "fill": "$--text-secondary",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "This document outlines the key decisions and progress updates for the Bluedox project. All team members should review before the next sprint planning.",
+                  "content": "This document outlines the key decisions and progress updates for the Bluedux project. All team members should review before the next sprint planning.",
                   "lineHeight": 1.6,
                   "fontFamily": "Outfit",
                   "fontSize": 15
@@ -4742,7 +4742,7 @@
                   "id": "EOKyC",
                   "name": "logoText",
                   "fill": "$--text-primary",
-                  "content": "Bluedox",
+                  "content": "Bluedux",
                   "fontFamily": "Cormorant Garamond",
                   "fontSize": 22,
                   "fontWeight": "600"

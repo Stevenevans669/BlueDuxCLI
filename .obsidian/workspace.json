@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "BluedoxCliSpec.md",
+                "file": "BlueduxCliSpec.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "BluedoxCliSpec"
+              "title": "BlueduxCliSpec"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "BluedoxCliSpec.md",
+                "file": "BlueduxCliSpec.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for BluedoxCliSpec"
+              "title": "Backlinks for BlueduxCliSpec"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "BluedoxCliSpec.md",
+                "file": "BlueduxCliSpec.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from BluedoxCliSpec"
+              "title": "Outgoing links from BlueduxCliSpec"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "BluedoxCliSpec.md",
+                "file": "BlueduxCliSpec.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of BluedoxCliSpec"
+              "title": "Outline of BlueduxCliSpec"
             }
           }
         ],
@@ -185,9 +185,9 @@
   },
   "active": "62a45ace9362516f",
   "lastOpenFiles": [
-    "BluedoxCliPRD.md",
-    "BluedoxCliSpec.md",
-    "bluedox-openapi.yaml",
+    "BlueduxCliPRD.md",
+    "BlueduxCliSpec.md",
+    "bluedux-openapi.yaml",
     "UX.pen"
   ]
 }
