@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
+    "pretest": "tsup",
     "test": "vitest run",
     "lint": "eslint src/"
   },
