@@ -1,0 +1,51 @@
+[2026-03-18 20:17:25] BLOCKED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/src/__tests__/test2.txt | reason=matches 'packages/cli/src/__tests__/' | session=c309aeac-11d2-47c1-99e6-af4d38de401a
+[2026-03-18 20:44:45] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/package.json | session=d78a74a9-03b5-45f6-9624-6af29800eb3c
+[2026-03-18 20:59:16] BLOCKED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/src/__tests__/notes.txt | reason=matches 'packages/cli/src/__tests__/' | session=2c5820ba-070f-48a9-b279-320f2a024998
+[2026-03-18 21:01:00] BLOCKED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/src/__tests__/2.txt | reason=matches 'packages/cli/src/__tests__/' | session=8d8d94f2-2417-43f5-9c83-e7a397e1a711
+[2026-03-18 21:15:04] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/turbo.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:37] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/shared/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:40] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/shared/tsconfig.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:42] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/shared/src/index.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:45] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/app.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:47] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/index.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:49] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/routes/health.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:49] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/db/index.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:51] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/db/schema.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:54] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/db/migrate.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:15:57] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/middleware/auth.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:00] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/drizzle.config.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:01] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/services/.gitkeep | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:03] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/data/.gitkeep | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:13] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/src/index.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:18] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/tsup.config.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:24] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/bin/bluedux.js | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:26] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/tsconfig.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:31] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/next.config.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:32] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/postcss.config.mjs | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:33] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/app/globals.css | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:35] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/app/layout.tsx | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:37] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/app/page.tsx | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:41] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/components/.gitkeep | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:43] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/lib/.gitkeep | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:46] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/hooks/.gitkeep | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:16:56] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:19:59] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:37] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/tsconfig.base.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:42] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/.gitignore | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:49] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:55] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/tsconfig.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:56] BLOCKED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/__tests__/smoke.test.ts | reason=matches 'packages/server/src/__tests__/' | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:56] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:20:59] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/tsconfig.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:21:02] BLOCKED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/src/__tests__/smoke.test.ts | reason=matches 'packages/cli/src/__tests__/' | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:21:02] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/web/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:39:52] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:41:20] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:45:49] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/app.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:45:57] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/routes/health.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:45:59] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/db/index.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:53:59] ALLOWED  | tool=Write | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/test-debug.mts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:55:24] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/vitest.config.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:56:10] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/src/app.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 21:56:21] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/server/vitest.config.ts | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
+[2026-03-18 22:01:51] ALLOWED  | tool=Edit | file=/Users/stevenevans/DevTemp/BlueduxCLI/packages/cli/package.json | session=9fa8f828-6c3e-4ef8-bb17-a76879219870
