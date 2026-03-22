@@ -4,3 +4,4 @@ dist/
 *.tsbuildinfo
 .DS_Store
 data/*.db
+pocketbase/pocketbase
